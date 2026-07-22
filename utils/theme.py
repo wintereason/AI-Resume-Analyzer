@@ -7,21 +7,21 @@ import streamlit as st
 # Design tokens
 # ---------------------------------------------------------------------------
 COLORS = {
-    "bg": "#0B1120",
-    "sidebar": "#111827",
-    "card": "#151F32",
-    "card_secondary": "#1E293B",
-    "primary": "#4F7CFF",
-    "cyan": "#22D3EE",
-    "green": "#22C55E",
+    "bg": "#F3F6FC",
+    "sidebar": "#FFFFFF",
+    "card": "#FFFFFF",
+    "card_secondary": "#F7F9FD",
+    "primary": "#2867D8",
+    "cyan": "#08AFC4",
+    "green": "#15B878",
     "amber": "#F59E0B",
-    "red": "#EF4444",
-    "purple": "#8B5CF6",
-    "text": "#F8FAFC",
-    "text_secondary": "#CBD5E1",
-    "muted": "#94A3B8",
-    "border": "rgba(148, 163, 184, 0.16)",
-    "border_strong": "rgba(96, 165, 250, 0.35)",
+    "red": "#EC5D8F",
+    "purple": "#6846C7",
+    "text": "#172033",
+    "text_secondary": "#475569",
+    "muted": "#718096",
+    "border": "rgba(67, 86, 122, 0.14)",
+    "border_strong": "rgba(40, 103, 216, 0.24)",
 }
 
 RADIUS = {
@@ -32,7 +32,7 @@ RADIUS = {
     "pill": "999px",
 }
 
-SHADOW = "0 8px 28px rgba(0, 0, 0, 0.18)"
+SHADOW = "0 16px 40px rgba(15, 23, 42, 0.08)"
 
 AVATAR_SIZES = {
     "small": 36,
@@ -41,20 +41,20 @@ AVATAR_SIZES = {
 }
 
 STATUS_COLORS = {
-    "under review": ("#4F7CFF", "Under Review"),
-    "shortlisted": ("#22C55E", "Shortlisted"),
+    "under review": ("#2867D8", "Under Review"),
+    "shortlisted": ("#08AFC4", "Shortlisted"),
     "interview scheduled": ("#F59E0B", "Interview Scheduled"),
-    "selected": ("#10B981", "Selected"),
-    "rejected": ("#EF4444", "Rejected"),
-    "review required": ("#F97316", "Review Required"),
+    "selected": ("#15B878", "Selected"),
+    "rejected": ("#EC5D8F", "Rejected"),
+    "review required": ("#F59E0B", "Review Required"),
     "scheduled": ("#F59E0B", "Scheduled"),
-    "completed": ("#22C55E", "Completed"),
-    "cancelled": ("#EF4444", "Cancelled"),
-    "rescheduled": ("#EAB308", "Rescheduled"),
-    "candidate absent": ("#F97316", "Candidate Absent"),
-    "active": ("#22C55E", "Active"),
-    "disabled": ("#EF4444", "Disabled"),
-    "not assigned": ("#94A3B8", "Not Assigned"),
+    "completed": ("#15B878", "Completed"),
+    "cancelled": ("#EC5D8F", "Cancelled"),
+    "rescheduled": ("#F59E0B", "Rescheduled"),
+    "candidate absent": ("#F59E0B", "Candidate Absent"),
+    "active": ("#15B878", "Active"),
+    "disabled": ("#718096", "Disabled"),
+    "not assigned": ("#718096", "Not Assigned"),
 }
 
 
@@ -1234,13 +1234,31 @@ def render_progress_steps(steps, current_step=0):
             </div>
             """)
 
+    st.html(f"<div class='progress-rail'>{''.join(items)}</div>")
 
-            {"<p>" + safe_description + "</p>" if safe_description else ""}
+
+def render_page_header(title, description="", icon="", eyebrow=None):
+    """Render a premium page header."""
+    safe_title = escape_html(title)
+    safe_description = escape_html(description)
+    safe_icon = f"{escape_html(icon)} " if icon else ""
+    eyebrow_html = (
+        f'<div class="eyebrow">{escape_html(eyebrow)}</div>' if eyebrow else ""
+    )
+
+    description_html = f"<p>{safe_description}</p>" if safe_description else ""
+    st.html(f"""
+        <div class="saas-page-header">
+            {eyebrow_html}
+            <h1>{safe_icon}{safe_title}</h1>
+            {description_html}
         </div>
         """)
 
 
-
+def page_header(title, description="", icon="", eyebrow=None):
+    """Backward-compatible page-header alias."""
+    render_page_header(title, description, icon, eyebrow=eyebrow)
 
 
 def render_section_header(title, description=None, icon=None):
@@ -1555,7 +1573,7 @@ def render_top_navbar(search_key="nav_search", logout_key="nav_logout"):
                     <div class="top-nav-logo">🤖</div>
                     <div>
                         <div class="top-nav-title">AI Resume Analyzer</div>
-                        <div class="top-nav-subtitle">Executive ATS Dashboard</div>
+                        <div class="top-nav-subtitle">Recruitment Intelligence Platform</div>
                     </div>
                 </div>
             </div>

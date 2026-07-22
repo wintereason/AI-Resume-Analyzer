@@ -138,6 +138,22 @@ render_page_header(
     eyebrow="Recruitment Dashboard",
 )
 
+header_col, action_col, export_col = st.columns([2.6, 1.2, 1.2])
+with header_col:
+    timeframe = st.selectbox(
+        "Date range",
+        ["Last 30 days", "Last 90 days", "Quarter to date"],
+        key="dashboard_timeframe",
+        label_visibility="collapsed",
+    )
+with action_col:
+    if st.button("Upload Resume", type="primary", width="stretch"):
+        st.switch_page("pages/2_Upload_Resume.py")
+with export_col:
+    st.button("Export Report", width="stretch")
+
+st.markdown("<div style='height:8px;'></div>", unsafe_allow_html=True)
+
 
 # ---------------------------------
 # Load Data
@@ -371,6 +387,30 @@ with interviews_col:
             icon="📅",
         )
 
+
+st.markdown("<div style='height:8px;'></div>", unsafe_allow_html=True)
+
+render_section_header(
+    "Quick Actions",
+    "Move between candidate operations and hiring workflows without losing momentum",
+    icon="⚡",
+)
+
+action_buttons = [
+    ("Upload Resume", "pages/2_Upload_Resume.py"),
+    ("Browse Candidates", "pages/3_Saved_Resumes.py"),
+    ("Candidate Profiles", "pages/11_Candidate_Profile.py"),
+    ("Job Matching", "pages/8_Job_Matching.py"),
+    ("Skill Gap Analysis", "pages/7_Skill_Gap_Analysis.py"),
+    ("Interview Scheduler", "pages/12_Interview_Scheduler.py"),
+    ("Full Analytics", "pages/4_Analytics.py"),
+]
+
+action_cols = st.columns(4)
+for index, (label, page) in enumerate(action_buttons):
+    with action_cols[index % 4]:
+        if st.button(label, width="stretch", key=f"qa_{index}"):
+            st.switch_page(page)
 
 st.markdown("<div style='height:8px;'></div>", unsafe_allow_html=True)
 
