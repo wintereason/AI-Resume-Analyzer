@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import pandas as pd
 import streamlit as st
 
@@ -8,6 +9,13 @@ from utils.theme import (
     render_kpi_row,
     section_header,
 )
+=======
+import html
+
+import pandas as pd
+import streamlit as st
+
+>>>>>>> a1ff58d (Update UI and improve performance)
 from auth import require_login
 from database import get_connection
 from utils.recruiter_matching import (
@@ -15,6 +23,10 @@ from utils.recruiter_matching import (
     match_candidates,
 )
 from utils.sidebar import show_sidebar
+<<<<<<< HEAD
+=======
+from utils.ui_system import apply_ui_system
+>>>>>>> a1ff58d (Update UI and improve performance)
 
 # ---------------------------------
 # Page Configuration
@@ -27,12 +39,88 @@ st.set_page_config(
 )
 
 
+<<<<<<< HEAD
+=======
+def escape(value):
+    return html.escape(str(value or ""), quote=True)
+
+
+def apply_global_styles():
+    st.markdown(
+        """
+        <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        :root{--ink:#182033;--muted:#718096;--line:#E4EAF3;--canvas:#F3F6FB;--blue:#2466D1;
+        --cyan:#08AFC4;--green:#15B878;--amber:#F3A536;--purple:#6846C7;--red:#E6556D}
+        html,body,[class*="css"]{font-family:'Inter',sans-serif}.stApp{background:var(--canvas);color:var(--ink)}
+        header[data-testid="stHeader"]{background:transparent}.block-container{max-width:1500px;padding:1rem 1.4rem 2.5rem}
+        h1,h2,h3,h4,h5{color:var(--ink);letter-spacing:-.02em}p,label,.stCaption{color:var(--muted)}
+        section[data-testid="stSidebar"]{background:#fff;border-right:1px solid var(--line)}section[data-testid="stSidebar"] .block-container{padding:1rem .85rem 1.25rem}
+        section[data-testid="stSidebar"] div[data-testid="stSidebarNav"]{display:none}section[data-testid="stSidebar"] hr{border-color:#EDF0F5;margin:.7rem 0}
+        section[data-testid="stSidebar"] a[data-testid="stPageLink-NavLink"]{min-height:40px;margin:2px 0;padding:8px 10px;border-radius:10px;color:#536078;font-size:.79rem;font-weight:600;border:1px solid transparent;transition:all .16s ease}
+        section[data-testid="stSidebar"] a[data-testid="stPageLink-NavLink"]:hover{color:var(--blue);background:#F2F6FD;border-color:#E4EAF4;transform:translateX(2px)}
+        section[data-testid="stSidebar"] a[data-testid="stPageLink-NavLink"][aria-current="page"]{color:#fff;background:linear-gradient(110deg,#1D58B8,#286CD6);box-shadow:0 7px 16px rgba(36,102,209,.18)}
+        .sidebar-nav-label{margin:13px 4px 7px;color:#8A95A8;font-size:.65rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+        .sidebar-account{display:flex;align-items:center;gap:10px;padding:11px;margin-bottom:9px;border:1px solid var(--line);border-radius:12px;background:#F8FAFD}.sidebar-account .name{color:var(--ink);font-size:.8rem;font-weight:800}.sidebar-account .meta{color:#8490A4;font-size:.66rem}
+        .candidate-avatar{display:flex;align-items:center;justify-content:center;flex:0 0 auto;border-radius:50%;color:#fff;background:linear-gradient(135deg,var(--blue),var(--purple));font-weight:800}.status-badge{display:inline-block;padding:4px 9px;border:1px solid;border-radius:999px;font-size:.68rem;font-weight:800}
+        .sidebar-status-row{display:grid;gap:6px;margin:8px 3px}.sidebar-status-item{display:flex;align-items:center;gap:7px;color:#7C889C;font-size:.67rem}.sidebar-dot{width:7px;height:7px;border-radius:50%}
+        .matching-hero{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:21px 23px;margin-bottom:16px;border-radius:18px;color:#fff;background:linear-gradient(110deg,#14489D 0%,#2466D1 58%,#6846C7 100%);box-shadow:0 12px 28px rgba(37,78,150,.18)}
+        .matching-hero .eyebrow{color:rgba(255,255,255,.7);font-size:.68rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase}.matching-hero h1{margin:4px 0;color:#fff;font-size:1.55rem;font-weight:800}.matching-hero p{margin:0;max-width:790px;color:rgba(255,255,255,.76);font-size:.8rem}
+        .matching-icon{width:52px;height:52px;display:flex;align-items:center;justify-content:center;flex:0 0 52px;border-radius:15px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25);font-size:1.4rem}
+        .match-metric{min-height:122px;padding:17px 18px;border-radius:15px;color:#fff;position:relative;overflow:hidden;box-shadow:0 9px 21px rgba(39,55,93,.12)}.match-metric:after{content:"";position:absolute;width:90px;height:90px;right:-30px;top:-45px;border-radius:50%;background:rgba(255,255,255,.16)}
+        .metric-icon{width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:9px;background:rgba(255,255,255,.17)}.metric-label{margin-top:10px;color:rgba(255,255,255,.8);font-size:.68rem;font-weight:700}.metric-value{margin-top:3px;font-size:1.48rem;font-weight:800;line-height:1}.metric-note{margin-top:7px;color:rgba(255,255,255,.7);font-size:.65rem}
+        .skill-chip{display:inline-block;margin:3px 4px 3px 0;padding:5px 9px;border-radius:999px;color:#215AAA;background:#EDF4FF;border:1px solid #D8E6FB;font-size:.7rem;font-weight:700}
+        .empty-state{text-align:center;padding:42px 22px;border:1px dashed #C8D3E3;border-radius:15px;background:#fff}.empty-state .empty-icon{font-size:1.6rem}.empty-state h4{margin:9px 0 3px}.empty-state p{margin:0;font-size:.76rem}
+        div[data-testid="stSelectbox"]>div>div,div[data-testid="stTextInput"] input{background:#fff;border-color:#DDE5F0;border-radius:10px}div[data-testid="stSlider"]{padding:3px}.stSlider [data-baseweb="slider"] div[role="slider"]{background:var(--blue)}
+        div[data-testid="stMetric"]{padding:14px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 6px 17px rgba(35,52,84,.05)}div[data-testid="stMetricValue"]{color:var(--ink);font-weight:800}
+        div[data-testid="stDataFrame"]{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 7px 20px rgba(35,52,84,.055);overflow:hidden}div[data-testid="stDataFrame"] [role="columnheader"]{background:#F7F9FC;color:#59667C;font-weight:700}
+        div[data-testid="stAlert"]{border-radius:12px;border-width:1px}div[data-testid="stDownloadButton"] button{min-height:42px;border-radius:10px;border:1px solid #D8E1EF;font-weight:700;background:var(--blue);color:#fff}
+        hr{border-color:#E7EBF2;margin:1.3rem 0}h3{font-size:1rem!important;font-weight:800!important}@media(max-width:850px){.matching-icon{display:none}}
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def page_header(title, description="", icon="", eyebrow="Candidate matching"):
+    st.markdown(
+        f'<div class="matching-hero"><div><div class="eyebrow">{escape(eyebrow)}</div><h1>{escape(title)}</h1>'
+        f'<p>{escape(description)}</p></div><div class="matching-icon">{escape(icon or "◇")}</div></div>',
+        unsafe_allow_html=True,
+    )
+
+
+def metric_card(label,value,icon,start,end,note):
+    st.markdown(
+        f'<div class="match-metric" style="background:linear-gradient(135deg,{start},{end})"><div class="metric-icon">{escape(icon)}</div>'
+        f'<div class="metric-label">{escape(label)}</div><div class="metric-value">{escape(value)}</div><div class="metric-note">{escape(note)}</div></div>',
+        unsafe_allow_html=True,
+    )
+
+
+def render_skill_chips(skills):
+    if not skills:
+        st.caption("No skills available.")
+        return
+    chips="".join(f'<span class="skill-chip">{escape(skill)}</span>' for skill in skills)
+    st.markdown(f'<div style="line-height:2.05">{chips}</div>',unsafe_allow_html=True)
+
+
+def render_empty_state(title,message,icon="⌕"):
+    st.markdown(f'<div class="empty-state"><div class="empty-icon">{escape(icon)}</div><h4>{escape(title)}</h4><p>{escape(message)}</p></div>',unsafe_allow_html=True)
+
+
+>>>>>>> a1ff58d (Update UI and improve performance)
 # ---------------------------------
 # Sidebar
 # ---------------------------------
 show_sidebar()
 apply_global_styles()
 require_login()
+<<<<<<< HEAD
+=======
+apply_ui_system()
+>>>>>>> a1ff58d (Update UI and improve performance)
 
 page_header(
     title="Job Matching",
@@ -173,7 +261,11 @@ with job_col1:
     st.markdown("#### Required Skills")
 
     if required_skills:
+<<<<<<< HEAD
         st.write(" • ".join(required_skills))
+=======
+        render_skill_chips(required_skills)
+>>>>>>> a1ff58d (Update UI and improve performance)
 
     else:
         st.warning("No required skills are assigned to this job role.")
@@ -267,6 +359,7 @@ metric_col1, metric_col2, metric_col3, metric_col4 = st.columns(4)
 
 
 with metric_col1:
+<<<<<<< HEAD
     st.metric(
         "👥 Candidates",
         total_candidates,
@@ -292,6 +385,21 @@ with metric_col4:
         "✅ Strong Candidates",
         strong_candidates,
     )
+=======
+    metric_card("Candidates",total_candidates,"♙","#5147C6","#6655D5","Available for this role")
+
+
+with metric_col2:
+    metric_card("Average Match",f"{average_match:.1f}%","◎","#0879B9","#1598D0","Mean skill compatibility")
+
+
+with metric_col3:
+    metric_card("Highest Match",f"{highest_match:.1f}%","↑","#0797AB","#09B8C4","Best skill alignment")
+
+
+with metric_col4:
+    metric_card("Strong Candidates",strong_candidates,"✓","#13A875","#1BC58A","Final score of 70%+")
+>>>>>>> a1ff58d (Update UI and improve performance)
 
 
 st.divider()

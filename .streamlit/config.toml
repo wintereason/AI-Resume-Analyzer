@@ -1,4 +1,5 @@
 [theme]
+<<<<<<< HEAD
 base = "dark"
 
 primaryColor = "#4F7CFF"
@@ -7,6 +8,16 @@ secondaryBackgroundColor = "#151F32"
 textColor = "#F8FAFC"
 linkColor = "#22D3EE"
 borderColor = "rgba(148, 163, 184, 0.16)"
+=======
+base = "light"
+
+primaryColor = "#2563C9"
+backgroundColor = "#F5F7FB"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#172033"
+linkColor = "#2563C9"
+borderColor = "#DDE4EF"
+>>>>>>> a1ff58d (Update UI and improve performance)
 
 baseRadius = "medium"
 buttonRadius = "medium"
@@ -20,11 +31,19 @@ showSidebarBorder = true
 
 
 [theme.sidebar]
+<<<<<<< HEAD
 primaryColor = "#4F7CFF"
 backgroundColor = "#111827"
 secondaryBackgroundColor = "#151F32"
 textColor = "#F8FAFC"
 borderColor = "rgba(148, 163, 184, 0.16)"
+=======
+primaryColor = "#2563C9"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F7F9FD"
+textColor = "#172033"
+borderColor = "#DDE4EF"
+>>>>>>> a1ff58d (Update UI and improve performance)
 
 
 [client]

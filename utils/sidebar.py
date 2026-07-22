@@ -71,7 +71,11 @@ def show_sidebar():
         role_color, _ = (
             ("#8B5CF6", "Admin")
             if user_role == "Admin"
+<<<<<<< HEAD
             else ("#4F7CFF", user_role)
+=======
+            else ("#2563C9", user_role)
+>>>>>>> a1ff58d (Update UI and improve performance)
         )
 
         st.sidebar.markdown(

@@ -7,6 +7,7 @@ import streamlit as st
 # Design tokens
 # ---------------------------------------------------------------------------
 COLORS = {
+<<<<<<< HEAD
     "bg": "#F3F6FC",
     "sidebar": "#FFFFFF",
     "card": "#FFFFFF",
@@ -22,6 +23,23 @@ COLORS = {
     "muted": "#718096",
     "border": "rgba(67, 86, 122, 0.14)",
     "border_strong": "rgba(40, 103, 216, 0.24)",
+=======
+    "bg": "#0B1120",
+    "sidebar": "#111827",
+    "card": "#151F32",
+    "card_secondary": "#1E293B",
+    "primary": "#4F7CFF",
+    "cyan": "#22D3EE",
+    "green": "#22C55E",
+    "amber": "#F59E0B",
+    "red": "#EF4444",
+    "purple": "#8B5CF6",
+    "text": "#F8FAFC",
+    "text_secondary": "#CBD5E1",
+    "muted": "#94A3B8",
+    "border": "rgba(148, 163, 184, 0.16)",
+    "border_strong": "rgba(96, 165, 250, 0.35)",
+>>>>>>> a1ff58d (Update UI and improve performance)
 }
 
 RADIUS = {
@@ -32,7 +50,11 @@ RADIUS = {
     "pill": "999px",
 }
 
+<<<<<<< HEAD
 SHADOW = "0 16px 40px rgba(15, 23, 42, 0.08)"
+=======
+SHADOW = "0 8px 28px rgba(0, 0, 0, 0.18)"
+>>>>>>> a1ff58d (Update UI and improve performance)
 
 AVATAR_SIZES = {
     "small": 36,
@@ -41,6 +63,7 @@ AVATAR_SIZES = {
 }
 
 STATUS_COLORS = {
+<<<<<<< HEAD
     "under review": ("#2867D8", "Under Review"),
     "shortlisted": ("#08AFC4", "Shortlisted"),
     "interview scheduled": ("#F59E0B", "Interview Scheduled"),
@@ -55,6 +78,22 @@ STATUS_COLORS = {
     "active": ("#15B878", "Active"),
     "disabled": ("#718096", "Disabled"),
     "not assigned": ("#718096", "Not Assigned"),
+=======
+    "under review": ("#4F7CFF", "Under Review"),
+    "shortlisted": ("#22C55E", "Shortlisted"),
+    "interview scheduled": ("#F59E0B", "Interview Scheduled"),
+    "selected": ("#10B981", "Selected"),
+    "rejected": ("#EF4444", "Rejected"),
+    "review required": ("#F97316", "Review Required"),
+    "scheduled": ("#F59E0B", "Scheduled"),
+    "completed": ("#22C55E", "Completed"),
+    "cancelled": ("#EF4444", "Cancelled"),
+    "rescheduled": ("#EAB308", "Rescheduled"),
+    "candidate absent": ("#F97316", "Candidate Absent"),
+    "active": ("#22C55E", "Active"),
+    "disabled": ("#EF4444", "Disabled"),
+    "not assigned": ("#94A3B8", "Not Assigned"),
+>>>>>>> a1ff58d (Update UI and improve performance)
 }
 
 
@@ -1234,6 +1273,10 @@ def render_progress_steps(steps, current_step=0):
             </div>
             """)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> a1ff58d (Update UI and improve performance)
     st.html(f"<div class='progress-rail'>{''.join(items)}</div>")
 
 
@@ -1573,7 +1616,11 @@ def render_top_navbar(search_key="nav_search", logout_key="nav_logout"):
                     <div class="top-nav-logo">🤖</div>
                     <div>
                         <div class="top-nav-title">AI Resume Analyzer</div>
+<<<<<<< HEAD
                         <div class="top-nav-subtitle">Recruitment Intelligence Platform</div>
+=======
+                        <div class="top-nav-subtitle">Executive ATS Dashboard</div>
+>>>>>>> a1ff58d (Update UI and improve performance)
                     </div>
                 </div>
             </div>

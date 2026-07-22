@@ -25,7 +25,11 @@ def apply_chart_layout(
         font=dict(
             family="Inter, sans-serif",
             size=13,
+<<<<<<< HEAD
             color="#CBD5E1",
+=======
+            color="#475569",
+>>>>>>> a1ff58d (Update UI and improve performance)
         ),
         legend_title_text="",
         hoverlabel=dict(
@@ -39,7 +43,11 @@ def apply_chart_layout(
     )
 
     figure.update_yaxes(
+<<<<<<< HEAD
         gridcolor="rgba(148,163,184,0.15)",
+=======
+        gridcolor="rgba(67,86,122,0.10)",
+>>>>>>> a1ff58d (Update UI and improve performance)
         zeroline=False,
     )
 
@@ -89,6 +97,10 @@ def create_ats_distribution_chart(data):
     )
 
     figure.update_traces(
+<<<<<<< HEAD
+=======
+        marker=dict(color="#08AFC4", line=dict(color="#FFFFFF", width=1)),
+>>>>>>> a1ff58d (Update UI and improve performance)
         textposition="outside",
         hovertemplate=("<b>%{x}</b><br>" "Candidates: %{y}" "<extra></extra>"),
     )
@@ -125,6 +137,10 @@ def create_status_donut_chart(data):
     )
 
     figure.update_traces(
+<<<<<<< HEAD
+=======
+        marker=dict(colors=["#2867D8", "#08AFC4", "#15B878", "#F59E0B", "#EC5D8F", "#6846C7"]),
+>>>>>>> a1ff58d (Update UI and improve performance)
         textposition="inside",
         textinfo="percent+label",
         hovertemplate=(

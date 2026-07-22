@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+import html
+>>>>>>> a1ff58d (Update UI and improve performance)
 import os
 from pathlib import Path
 from uuid import uuid4
@@ -20,6 +24,7 @@ from utils.ai_feedback import generate_feedback
 from utils.pdf_report import generate_pdf
 from utils.recommendation import recommend_jobs
 from utils.sidebar import show_sidebar
+<<<<<<< HEAD
 from utils.theme import (
     apply_global_styles,
     page_header,
@@ -29,6 +34,9 @@ from utils.theme import (
     render_status_badge,
     section_header,
 )
+=======
+from utils.ui_system import apply_ui_system
+>>>>>>> a1ff58d (Update UI and improve performance)
 
 # ---------------------------------
 # Page Configuration
@@ -42,11 +50,205 @@ st.set_page_config(
 
 
 # ---------------------------------
+<<<<<<< HEAD
+=======
+# Figma-derived UI layer
+# ---------------------------------
+def escape(value):
+    return html.escape(str(value or ""), quote=True)
+
+
+def apply_global_styles():
+    """Apply the Upload Resume screen's self-contained Figma visual system."""
+    st.markdown(
+        """
+        <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        :root {
+            --ink:#182033; --muted:#718096; --line:#E4EAF3; --canvas:#F3F6FB;
+            --surface:#FFFFFF; --blue:#2466D1; --cyan:#08AFC4; --green:#15B878;
+            --amber:#F3A536; --red:#E6556D; --purple:#6846C7;
+        }
+        html, body, [class*="css"] { font-family:'Inter',sans-serif; }
+        .stApp { background:var(--canvas); color:var(--ink); }
+        header[data-testid="stHeader"] { background:transparent; }
+        .block-container { max-width:1460px; padding:1rem 1.4rem 2.5rem; }
+        h1,h2,h3,h4,h5 { color:var(--ink); letter-spacing:-.02em; }
+        p,label,.stCaption { color:var(--muted); }
+
+        section[data-testid="stSidebar"] { background:#fff; border-right:1px solid var(--line); }
+        section[data-testid="stSidebar"] .block-container { padding:1rem .85rem 1.25rem; }
+        section[data-testid="stSidebar"] div[data-testid="stSidebarNav"] { display:none; }
+        section[data-testid="stSidebar"] hr { border-color:#EDF0F5; margin:.7rem 0; }
+        section[data-testid="stSidebar"] a[data-testid="stPageLink-NavLink"] {
+            min-height:40px; margin:2px 0; padding:8px 10px; border-radius:10px;
+            color:#536078; font-size:.79rem; font-weight:600; border:1px solid transparent;
+            transition:all .16s ease;
+        }
+        section[data-testid="stSidebar"] a[data-testid="stPageLink-NavLink"]:hover {
+            color:var(--blue); background:#F2F6FD; border-color:#E4EAF4; transform:translateX(2px);
+        }
+        section[data-testid="stSidebar"] a[data-testid="stPageLink-NavLink"][aria-current="page"] {
+            color:#fff; background:linear-gradient(110deg,#1D58B8,#286CD6);
+            box-shadow:0 7px 16px rgba(36,102,209,.18);
+        }
+        .sidebar-nav-label { margin:13px 4px 7px; color:#8A95A8; font-size:.65rem;
+            font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
+        .sidebar-account { display:flex; align-items:center; gap:10px; padding:11px;
+            margin-bottom:9px; border:1px solid var(--line); border-radius:12px; background:#F8FAFD; }
+        .sidebar-account .name { color:var(--ink); font-size:.8rem; font-weight:800; }
+        .sidebar-account .meta { color:#8490A4; font-size:.66rem; }
+        .candidate-avatar { display:flex; align-items:center; justify-content:center; flex:0 0 auto;
+            border-radius:50%; color:#fff; background:linear-gradient(135deg,var(--blue),var(--purple)); font-weight:800; }
+        .status-badge { display:inline-block; padding:4px 9px; border:1px solid; border-radius:999px;
+            font-size:.68rem; font-weight:800; }
+        .sidebar-status-row { display:grid; gap:6px; margin:8px 3px; }
+        .sidebar-status-item { display:flex; align-items:center; gap:7px; color:#7C889C; font-size:.67rem; }
+        .sidebar-dot { width:7px; height:7px; border-radius:50%; }
+
+        .upload-hero { display:flex; justify-content:space-between; align-items:center; gap:20px;
+            padding:21px 23px; margin-bottom:14px; border-radius:18px; color:#fff;
+            background:linear-gradient(110deg,#14489D 0%,#2466D1 58%,#6846C7 100%);
+            box-shadow:0 12px 28px rgba(37,78,150,.18); }
+        .upload-hero .eyebrow { color:rgba(255,255,255,.7); font-size:.68rem; font-weight:800;
+            letter-spacing:.1em; text-transform:uppercase; }
+        .upload-hero h1 { margin:4px 0; color:#fff; font-size:1.55rem; font-weight:800; }
+        .upload-hero p { margin:0; max-width:760px; color:rgba(255,255,255,.76); font-size:.8rem; }
+        .upload-hero-icon { width:52px; height:52px; display:flex; align-items:center; justify-content:center;
+            flex:0 0 52px; border-radius:15px; background:rgba(255,255,255,.16);
+            border:1px solid rgba(255,255,255,.25); font-size:1.45rem; }
+
+        .progress-rail { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin:14px 0 18px; }
+        .progress-step { position:relative; padding:11px 12px; border:1px solid var(--line);
+            border-radius:11px; background:#fff; color:#8994A7; font-size:.7rem; font-weight:700; }
+        .progress-step.active { color:var(--blue); border-color:rgba(36,102,209,.3); background:#EEF4FF; }
+        .progress-step.done { color:#0D9563; border-color:rgba(21,184,120,.28); background:#ECFBF5; }
+        .step-number { display:inline-flex; width:21px; height:21px; align-items:center; justify-content:center;
+            margin-right:6px; border-radius:7px; background:#EDF1F7; font-size:.65rem; }
+        .progress-step.active .step-number { color:#fff; background:var(--blue); }
+        .progress-step.done .step-number { color:#fff; background:var(--green); }
+
+        div[data-testid="stFileUploader"] { padding:22px; border:1px solid var(--line); border-radius:16px;
+            background:#fff; box-shadow:0 7px 20px rgba(35,52,84,.06); }
+        div[data-testid="stFileUploaderDropzone"] { min-height:170px; border:1.5px dashed #B9C7DC;
+            border-radius:13px; background:#F8FAFE; }
+        div[data-testid="stFileUploaderDropzone"]:hover { border-color:var(--blue); background:#F3F7FE; }
+
+        .section-heading { margin:22px 0 10px; }
+        .section-heading h3 { margin:0; color:var(--ink); font-size:.98rem; font-weight:800; }
+        .section-heading p { margin:3px 0 0; color:var(--muted); font-size:.72rem; }
+
+        .result-card { min-height:118px; padding:17px 18px; border:1px solid var(--line);
+            border-radius:15px; background:#fff; box-shadow:0 7px 20px rgba(35,52,84,.06); }
+        .result-icon { width:31px; height:31px; display:flex; align-items:center; justify-content:center;
+            border-radius:9px; background:#EDF4FF; color:var(--blue); }
+        .result-label { margin-top:12px; color:var(--muted); font-size:.68rem; font-weight:700; text-transform:uppercase; }
+        .result-value { margin-top:3px; color:var(--ink); font-size:1.18rem; font-weight:800;
+            overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+        div[data-testid="stVerticalBlockBorderWrapper"] { background:#fff; border-color:var(--line)!important;
+            border-radius:15px!important; box-shadow:0 7px 20px rgba(35,52,84,.055); }
+        .skill-chip { display:inline-block; margin:3px 4px 3px 0; padding:5px 9px; border-radius:999px;
+            color:#215AAA; background:#EDF4FF; border:1px solid #D8E6FB; font-size:.7rem; font-weight:700; }
+        div[data-testid="stMetric"] { padding:15px; background:#fff; border:1px solid var(--line);
+            border-radius:13px; box-shadow:0 5px 15px rgba(35,52,84,.05); }
+        div[data-testid="stMetricValue"] { color:var(--ink); font-weight:800; }
+        div[data-testid="stProgress"] > div > div { background:linear-gradient(90deg,var(--blue),var(--cyan)); }
+        div[data-testid="stButton"] button, div[data-testid="stDownloadButton"] button {
+            min-height:42px; border-radius:10px; border:1px solid #D8E1EF; font-weight:700; }
+        div[data-testid="stButton"] button[kind="primary"] { color:#fff; background:var(--blue); border-color:var(--blue); }
+        hr { border-color:#E7EBF2; }
+        @media(max-width:850px) { .progress-rail{grid-template-columns:1fr 1fr;} .upload-hero-icon{display:none;} }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def page_header(title, description="", icon="", eyebrow=None):
+    st.markdown(
+        f"""
+        <div class="upload-hero">
+            <div>
+                <div class="eyebrow">{escape(eyebrow or 'Resume intelligence')}</div>
+                <h1>{escape(title)}</h1>
+                <p>{escape(description)}</p>
+            </div>
+            <div class="upload-hero-icon">{escape(icon or '↥')}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_progress_steps(steps, current_step=0):
+    items = []
+    for index, label in enumerate(steps):
+        state = "done" if index < current_step else "active" if index == current_step else ""
+        marker = "✓" if state == "done" else str(index + 1)
+        items.append(
+            f'<div class="progress-step {state}"><span class="step-number">{marker}</span>{escape(label)}</div>'
+        )
+    st.markdown(f'<div class="progress-rail">{"".join(items)}</div>', unsafe_allow_html=True)
+
+
+def section_header(title, description="", icon=""):
+    icon_html = f"{escape(icon)} " if icon else ""
+    st.markdown(
+        f'<div class="section-heading"><h3>{icon_html}{escape(title)}</h3><p>{escape(description)}</p></div>',
+        unsafe_allow_html=True,
+    )
+
+
+def render_kpi_row(cards):
+    columns = st.columns(len(cards))
+    for column, card in zip(columns, cards):
+        with column:
+            st.markdown(
+                f"""
+                <div class="result-card">
+                    <div class="result-icon">{escape(card.get('icon'))}</div>
+                    <div class="result-label">{escape(card.get('label'))}</div>
+                    <div class="result-value" title="{escape(card.get('value'))}">{escape(card.get('value'))}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+
+def render_skill_chips(skills):
+    if not skills:
+        st.caption("No skills detected.")
+        return
+    chips = "".join(f'<span class="skill-chip">{escape(skill)}</span>' for skill in skills)
+    st.markdown(f'<div style="line-height:2.05">{chips}</div>', unsafe_allow_html=True)
+
+
+def render_status_badge(status):
+    colors = {
+        "shortlisted": "#15B878",
+        "under review": "#2466D1",
+        "review required": "#F3A536",
+        "rejected": "#E6556D",
+    }
+    color = colors.get(str(status).lower(), "#718096")
+    st.markdown(
+        f'<span class="status-badge" style="color:{color};background:{color}14;border-color:{color}45">{escape(status)}</span>',
+        unsafe_allow_html=True,
+    )
+
+
+# ---------------------------------
+>>>>>>> a1ff58d (Update UI and improve performance)
 # Authentication and Styling
 # ---------------------------------
 apply_global_styles()
 require_role(["Admin", "Recruiter"])
 show_sidebar()
+<<<<<<< HEAD
+=======
+apply_ui_system()
+>>>>>>> a1ff58d (Update UI and improve performance)
 
 
 # ---------------------------------
