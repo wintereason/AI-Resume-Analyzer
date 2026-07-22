@@ -1,0 +1,35 @@
+[theme]
+base = "dark"
+
+primaryColor = "#4F7CFF"
+backgroundColor = "#0B1120"
+secondaryBackgroundColor = "#151F32"
+textColor = "#F8FAFC"
+linkColor = "#22D3EE"
+borderColor = "rgba(148, 163, 184, 0.16)"
+
+baseRadius = "medium"
+buttonRadius = "medium"
+
+font = "Inter, sans-serif"
+headingFont = "Inter, sans-serif"
+codeFont = "monospace"
+
+showWidgetBorder = true
+showSidebarBorder = true
+
+
+[theme.sidebar]
+primaryColor = "#4F7CFF"
+backgroundColor = "#111827"
+secondaryBackgroundColor = "#151F32"
+textColor = "#F8FAFC"
+borderColor = "rgba(148, 163, 184, 0.16)"
+
+
+[client]
+showErrorDetails = true
+
+
+[browser]
+gatherUsageStats = false
