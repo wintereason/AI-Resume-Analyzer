@@ -100,7 +100,6 @@ function Icon({ name, className = "h-5 w-5" }: { name: IconName; className?: str
 
 function Dashboard({ onLogout }: { onLogout: () => void }) {
   const [refreshed, setRefreshed] = useState(false);
-  const [notice, setNotice] = useState("");
   const [page, setPage] = useState<"dashboard" | "analyzer" | "candidates" | "analytics" | "jobs" | "skillgap" | "interviews">("dashboard");
   const [candidateCount, setCandidateCount] = useState(0);
   const [analyses, setAnalyses] = useState<AnalysisResult[]>([]);
@@ -187,11 +186,6 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
   function refreshDashboard() {
     setRefreshed(true);
     window.setTimeout(() => setRefreshed(false), 700);
-  }
-
-  function showNotice(message: string) {
-    setNotice(message);
-    window.setTimeout(() => setNotice(""), 2200);
   }
 
   const recentCandidates = [...analyses].sort((left, right) => right.createdAt.localeCompare(left.createdAt)).slice(0, 4);
@@ -319,8 +313,6 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
         </header>
 
         <main className="dashboard-content">
-          {notice && <div className="dashboard-toast">{notice}</div>}
-
           {page === "analyzer" ? (
             <ResumeAnalyzer initialAnalysis={selectedAnalysis} initialJobRole={selectedJobRole} onReturn={() => setPage(selectedAnalysis ? "candidates" : selectedJobRole ? "jobs" : "dashboard")} />
           ) : page === "candidates" ? (
@@ -455,7 +447,17 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
             <article className="dashboard-card">
               <div className="card-heading">
                 <div><h2>Candidate status</h2><p>Current pipeline distribution</p></div>
-                <button type="button" onClick={() => showNotice("Pipeline details opened")} className="text-xs font-bold text-[#159c8c]">View all</button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCandidateFilters({});
+                    setSelectedCandidateProfile(null);
+                    setPage("candidates");
+                  }}
+                  className="text-xs font-bold text-[#159c8c]"
+                >
+                  View all
+                </button>
               </div>
               <div className="flex items-center justify-center gap-8 py-4">
               <div className="status-donut"><div><strong>{totalCandidates}</strong><span>Total</span></div></div>
@@ -476,7 +478,17 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
             <article className="dashboard-card overflow-hidden">
               <div className="card-heading">
                 <div><h2>Recent candidates</h2><p>Latest resume submissions and AI analysis</p></div>
-                <button type="button" onClick={() => showNotice("Candidate directory opened")} className="view-link">View all candidates →</button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCandidateFilters({});
+                    setSelectedCandidateProfile(null);
+                    setPage("candidates");
+                  }}
+                  className="view-link"
+                >
+                  View all candidates →
+                </button>
               </div>
               <div className="overflow-x-auto">
                 <table className="candidate-table">
@@ -495,7 +507,21 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
                           <td><div className="flex items-center gap-2"><span className="score-track"><i className={`score-fill score-${analysis.score}`} /></span><b>{analysis.score}</b></div></td>
                           <td>{new Date(analysis.createdAt).toLocaleDateString()}</td>
                           <td><span className={`status-pill ${status.toLowerCase().replaceAll(" ", "-")}`}>{status}</span></td>
-                          <td><button type="button" onClick={() => { setSelectedAnalysis(analysis); setPage("analyzer"); }} className="row-action">•••</button></td>
+                          <td>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedAnalysis(null);
+                                setSelectedCandidateProfile(analysis);
+                                setCandidateFilters({});
+                                setPage("candidates");
+                              }}
+                              className="row-action"
+                              aria-label={`Open ${candidateName} profile`}
+                            >
+                              •••
+                            </button>
+                          </td>
                         </tr>
                       );
                     })}
