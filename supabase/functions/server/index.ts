@@ -1,4 +1,5 @@
 import { Hono } from "npm:hono";
+import type { Context } from "npm:hono";
 import { cors } from "npm:hono/cors";
 import { logger } from "npm:hono/logger";
 import { createClient } from "npm:@supabase/supabase-js@2";
@@ -21,11 +22,15 @@ app.use(
 );
 
 // Health check endpoint
-app.get("/make-server-91bd2624/health", (c) => {
+const healthResponse = (c: Context) => {
   return c.json({ status: "ok" });
-});
+};
+app.get("/health", healthResponse);
+app.get("/server/health", healthResponse);
+app.get("/make-server-91bd2624/health", healthResponse);
+app.get("/server/make-server-91bd2624/health", healthResponse);
 
-app.post("/make-server-91bd2624/bootstrap-admin", async (c) => {
+const bootstrapAdmin = async (c: Context) => {
   const body = await c.req.json<{ email?: string; password?: string }>();
   const email = body.email?.trim().toLowerCase();
   const password = body.password;
@@ -55,6 +60,10 @@ app.post("/make-server-91bd2624/bootstrap-admin", async (c) => {
   }
 
   return c.json({ id: data.user.id }, 201);
-});
+};
+app.post("/bootstrap-admin", bootstrapAdmin);
+app.post("/server/bootstrap-admin", bootstrapAdmin);
+app.post("/make-server-91bd2624/bootstrap-admin", bootstrapAdmin);
+app.post("/server/make-server-91bd2624/bootstrap-admin", bootstrapAdmin);
 
 Deno.serve(app.fetch);
