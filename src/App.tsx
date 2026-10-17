@@ -7,7 +7,7 @@ import SkillGapAnalysis from "./SkillGapAnalysis";
 import InterviewScheduler from "./InterviewScheduler";
 import { ANALYSES_CHANGED_EVENT, getSavedAnalyses } from "./lib/analysisStorage";
 import type { AnalysisResult } from "./lib/resumeAnalyzer";
-import type { JobRole } from "./lib/jobRoleStorage";
+import { getJobRoles, type JobRole } from "./lib/jobRoleStorage";
 import { getInterviews, INTERVIEWS_CHANGED_EVENT, type Interview } from "./lib/interviewStorage";
 import { hasAuthToken, loginRecruiter, logoutRecruiter } from "./lib/api";
 import { migrateIndexedDbToSupabase } from "./lib/migrateIndexedDbToSupabase";
@@ -98,18 +98,14 @@ function Icon({ name, className = "h-5 w-5" }: { name: IconName; className?: str
   );
 }
 
-const candidates = [
-  { initials: "SM", name: "Sophia Miller", role: "Product Designer", score: 92, date: "Jun 18, 2025", status: "Shortlisted", tone: "mint" },
-  { initials: "DC", name: "Daniel Chen", role: "Senior Engineer", score: 88, date: "Jun 18, 2025", status: "Interview", tone: "purple" },
-  { initials: "AO", name: "Amara Okafor", role: "Growth Manager", score: 84, date: "Jun 17, 2025", status: "Screening", tone: "amber" },
-  { initials: "JL", name: "James Lee", role: "Data Analyst", score: 79, date: "Jun 16, 2025", status: "Applied", tone: "blue" },
-];
-
 function Dashboard({ onLogout }: { onLogout: () => void }) {
   const [refreshed, setRefreshed] = useState(false);
   const [notice, setNotice] = useState("");
   const [page, setPage] = useState<"dashboard" | "analyzer" | "candidates" | "analytics" | "jobs" | "skillgap" | "interviews">("dashboard");
   const [candidateCount, setCandidateCount] = useState(0);
+  const [analyses, setAnalyses] = useState<AnalysisResult[]>([]);
+  const [jobRoles, setJobRoles] = useState<JobRole[]>([]);
+  const [openJobRoleCount, setOpenJobRoleCount] = useState(0);
   const [selectedAnalysis, setSelectedAnalysis] = useState<AnalysisResult | null>(null);
   const [selectedCandidateProfile, setSelectedCandidateProfile] = useState<AnalysisResult | null>(null);
   const [selectedJobRole, setSelectedJobRole] = useState<JobRole | null>(null);
@@ -135,11 +131,41 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
   useEffect(() => {
     const loadCount = () =>
       getSavedAnalyses()
-        .then((items) => setCandidateCount(new Set(items.map((item) => item.candidate.email !== "Not found" ? item.candidate.email.toLowerCase() : `${item.fileName}:${item.candidate.name}`)).size))
-        .catch(() => setCandidateCount(0));
+        .then((items) => {
+          setAnalyses(items);
+          setCandidateCount(
+            new Set(
+              items.map((item) =>
+                item.candidate.email !== "Not found"
+                  ? item.candidate.email.toLowerCase()
+                  : `${item.fileName}:${item.candidate.name}`,
+              ),
+            ).size,
+          );
+        })
+        .catch(() => {
+          setAnalyses([]);
+          setCandidateCount(0);
+        });
     void loadCount();
     window.addEventListener(ANALYSES_CHANGED_EVENT, loadCount);
     return () => window.removeEventListener(ANALYSES_CHANGED_EVENT, loadCount);
+  }, []);
+
+  useEffect(() => {
+    const loadRoles = () =>
+      getJobRoles()
+        .then((items) => {
+          setJobRoles(items);
+          setOpenJobRoleCount(items.filter((role) => role.status === "Active").length);
+        })
+        .catch(() => {
+          setJobRoles([]);
+          setOpenJobRoleCount(0);
+        });
+    void loadRoles();
+    window.addEventListener("talentflow-job-roles-changed", loadRoles);
+    return () => window.removeEventListener("talentflow-job-roles-changed", loadRoles);
   }, []);
 
   useEffect(() => {
@@ -167,6 +193,46 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
     setNotice(message);
     window.setTimeout(() => setNotice(""), 2200);
   }
+
+  const recentCandidates = [...analyses].sort((left, right) => right.createdAt.localeCompare(left.createdAt)).slice(0, 4);
+  const statusLabels = ["New", "Shortlisted", "Interview Scheduled", "Rejected"];
+  const statusCounts = statusLabels.map((label) => ({
+    label,
+    value: analyses.filter((analysis) => (analysis.recruitmentStatus ?? "New") === label).length,
+  }));
+  const totalCandidates = statusCounts.reduce((total, item) => total + item.value, 0);
+  const skillCounts = new Map<string, number>();
+  jobRoles.filter((role) => role.status === "Active").forEach((role) => {
+    [...role.requiredSkills, ...role.preferredSkills].forEach((skill) => {
+      const normalized = skill.trim();
+      if (normalized) skillCounts.set(normalized, (skillCounts.get(normalized) ?? 0) + 1);
+    });
+  });
+  const topSkills = [...skillCounts.entries()].sort((left, right) => right[1] - left[1]).slice(0, 4);
+  const maxSkillCount = topSkills[0]?.[1] ?? 1;
+  const recentActivities = [
+    ...analyses.map((analysis) => ({
+      icon: "resume" as IconName,
+      title: "Resume analyzed",
+      body: `${analysis.candidate.name} scored ${analysis.score} for ${analysis.role}`,
+      date: analysis.createdAt,
+      theme: "teal",
+    })),
+    ...jobRoles.map((role) => ({
+      icon: "jobs" as IconName,
+      title: "Job role updated",
+      body: `${role.title} is ${role.status.toLowerCase()}`,
+      date: role.updatedAt,
+      theme: "amber",
+    })),
+    ...upcomingInterviews.map((interview) => ({
+      icon: "calendar" as IconName,
+      title: "Interview scheduled",
+      body: `${interview.candidateName} for ${interview.jobRoleTitle}`,
+      date: interview.createdAt,
+      theme: "purple",
+    })),
+  ].sort((left, right) => right.date.localeCompare(left.date)).slice(0, 3);
 
   return (
     <div className="dashboard-shell">
@@ -298,7 +364,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
             <div>
               <p className="mb-1 text-xs font-semibold text-[#8d918f]">{currentDate}</p>
               <h1 className="text-[30px] font-extrabold tracking-[-0.045em] text-[#171c1a] sm:text-[34px]">Recruitment overview</h1>
-              <p className="mt-1 text-sm text-[#777c79]">Welcome back, Alex. Here’s what’s happening with your talent pipeline.</p>
+              <p className="mt-1 text-sm text-[#777c79]">Welcome back, {userName}. Here’s what’s happening with your talent pipeline.</p>
             </div>
             <div className="flex gap-2">
               <button type="button" onClick={refreshDashboard} className="secondary-action">
@@ -314,10 +380,17 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
 
           <section className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {[
-              { label: "Total resumes", value: "1,284", change: "+12.5%", icon: "resume" as IconName, theme: "teal" },
-              { label: "Total candidates", value: "248", change: "+8.2%", icon: "candidates" as IconName, theme: "blue" },
-              { label: "Average ATS score", value: "78.6", change: "+4.1%", icon: "sparkles" as IconName, theme: "purple" },
-              { label: "Open job roles", value: "18", change: "6 urgent", icon: "jobs" as IconName, theme: "amber" },
+              { label: "Total resumes", value: analyses.length.toLocaleString(), icon: "resume" as IconName, theme: "teal" },
+              { label: "Total candidates", value: candidateCount.toLocaleString(), icon: "candidates" as IconName, theme: "blue" },
+              {
+                label: "Average ATS score",
+                value: analyses.length
+                  ? (analyses.reduce((total, analysis) => total + analysis.score, 0) / analyses.length).toFixed(1)
+                  : "0",
+                icon: "sparkles" as IconName,
+                theme: "purple",
+              },
+              { label: "Open job roles", value: openJobRoleCount.toLocaleString(), icon: "jobs" as IconName, theme: "amber" },
             ].map((metric) => (
               <article key={metric.label} className="metric-card">
                 <div className={`metric-icon ${metric.theme}`}><Icon name={metric.icon} /></div>
@@ -326,7 +399,6 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
                     <p className="text-[12px] font-semibold text-[#888d8a]">{metric.label}</p>
                     <p className="mt-1 text-[27px] font-extrabold tracking-[-0.04em] text-[#1c211f]">{metric.value}</p>
                   </div>
-                  <span className={`mb-1 text-[11px] font-bold ${metric.theme === "amber" ? "text-[#c18115]" : "text-[#109582]"}`}>{metric.change}</span>
                 </div>
               </article>
             ))}
@@ -345,23 +417,39 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
                 </select>
               </div>
               <div className="chart-wrap">
-                <div className="chart-y-labels"><span>300</span><span>200</span><span>100</span><span>0</span></div>
-                <svg viewBox="0 0 700 230" className="h-full w-full" preserveAspectRatio="none" aria-label="Resume uploads line chart">
-                  <defs>
-                    <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#14b8a6" stopOpacity=".25" />
-                      <stop offset="100%" stopColor="#14b8a6" stopOpacity="0" />
-                    </linearGradient>
-                  </defs>
-                  <g stroke="#eceeeb" strokeWidth="1">
-                    <path d="M0 20H700M0 83H700M0 146H700M0 209H700" />
-                  </g>
-                  <path d="M0 184 C55 175 75 152 112 158 S183 134 228 140 S298 112 345 119 S415 64 466 79 S538 52 578 58 S648 31 700 38 L700 210 L0 210Z" fill="url(#areaFill)" />
-                  <path d="M0 184 C55 175 75 152 112 158 S183 134 228 140 S298 112 345 119 S415 64 466 79 S538 52 578 58 S648 31 700 38" fill="none" stroke="#12aa98" strokeWidth="3" strokeLinecap="round" />
-                  {[["0","184"],["112","158"],["228","140"],["345","119"],["466","79"],["578","58"],["700","38"]].map(([cx, cy]) => <circle key={cx} cx={cx} cy={cy} r="4" fill="#fff" stroke="#12aa98" strokeWidth="3" />)}
-                </svg>
+                {analyses.length ? (
+                  <div className="flex h-full items-end justify-around gap-3 px-4 pb-2">
+                    {Array.from({ length: 7 }, (_, index) => {
+                      const date = new Date();
+                      date.setMonth(date.getMonth() - (6 - index), 1);
+                      const count = analyses.filter((analysis) => {
+                        const created = new Date(analysis.createdAt);
+                        return created.getFullYear() === date.getFullYear() && created.getMonth() === date.getMonth();
+                      }).length;
+                      const max = Math.max(
+                        1,
+                        ...Array.from({ length: 7 }, (_, monthIndex) => {
+                          const month = new Date();
+                          month.setMonth(month.getMonth() - (6 - monthIndex), 1);
+                          return analyses.filter((analysis) => {
+                            const created = new Date(analysis.createdAt);
+                            return created.getFullYear() === month.getFullYear() && created.getMonth() === month.getMonth();
+                          }).length;
+                        }),
+                      );
+                      return (
+                        <div key={date.toISOString()} className="flex h-full flex-1 flex-col items-center justify-end gap-2">
+                          <span className="text-xs font-bold text-[#5f6964]">{count}</span>
+                          <span className="w-full max-w-10 rounded-t-md bg-[#12aa98]" style={{ height: `${Math.max(count ? 8 : 2, (count / max) * 78)}%` }} />
+                          <span className="text-xs text-[#929693]">{date.toLocaleDateString("en-US", { month: "short" })}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="dashboard-interview-empty"><p>No resume upload data yet</p></div>
+                )}
               </div>
-              <div className="chart-months"><span>Dec</span><span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span></div>
             </article>
 
             <article className="dashboard-card">
@@ -370,19 +458,14 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
                 <button type="button" onClick={() => showNotice("Pipeline details opened")} className="text-xs font-bold text-[#159c8c]">View all</button>
               </div>
               <div className="flex items-center justify-center gap-8 py-4">
-                <div className="status-donut"><div><strong>248</strong><span>Total</span></div></div>
-                <div className="space-y-3">
-                  {[
-                    ["Shortlisted", "82", "bg-[#15b8a5]"],
-                    ["Interview", "64", "bg-[#7468d7]"],
-                    ["Screening", "58", "bg-[#f2b84b]"],
-                    ["Rejected", "44", "bg-[#ec6f78]"],
-                  ].map(([label, value, color]) => (
-                    <div key={label} className="flex min-w-[120px] items-center gap-2 text-xs">
-                      <span className={`h-2 w-2 rounded-full ${color}`} />
-                      <span className="flex-1 text-[#717673]">{label}</span>
-                      <b className="text-[#2b302e]">{value}</b>
-                    </div>
+              <div className="status-donut"><div><strong>{totalCandidates}</strong><span>Total</span></div></div>
+              <div className="space-y-3">
+                {statusCounts.map(({ label, value }, index) => (
+                  <div key={label} className="flex min-w-[120px] items-center gap-2 text-xs">
+                    <span className={`h-2 w-2 rounded-full ${["bg-[#15b8a5]", "bg-[#7468d7]", "bg-[#f2b84b]", "bg-[#ec6f78]"][index]}`} />
+                    <span className="flex-1 text-[#717673]">{label}</span>
+                    <b className="text-[#2b302e]">{value}</b>
+                  </div>
                   ))}
                 </div>
               </div>
@@ -399,18 +482,26 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
                 <table className="candidate-table">
                   <thead><tr><th>Candidate</th><th>Target role</th><th>ATS score</th><th>Uploaded</th><th>Status</th><th /></tr></thead>
                   <tbody>
-                    {candidates.map((candidate) => (
-                      <tr key={candidate.name}>
-                        <td><div className="flex items-center gap-3"><span className={`candidate-avatar ${candidate.tone}`}>{candidate.initials}</span><b>{candidate.name}</b></div></td>
-                        <td>{candidate.role}</td>
-                        <td><div className="flex items-center gap-2"><span className="score-track"><i className={`score-fill score-${candidate.score}`} /></span><b>{candidate.score}</b></div></td>
-                        <td>{candidate.date}</td>
-                        <td><span className={`status-pill ${candidate.status.toLowerCase()}`}>{candidate.status}</span></td>
-                        <td><button type="button" onClick={() => showNotice(`${candidate.name}'s profile opened`)} className="row-action">•••</button></td>
-                      </tr>
-                    ))}
+                    {recentCandidates.map((analysis, index) => {
+                      const candidateName = analysis.candidate.name;
+                      const initials = candidateName === "Not found"
+                        ? "NA"
+                        : candidateName.split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
+                      const status = analysis.recruitmentStatus ?? "New";
+                      return (
+                        <tr key={analysis.id}>
+                          <td><div className="flex items-center gap-3"><span className={`candidate-avatar ${["mint", "purple", "amber", "blue"][index % 4]}`}>{initials}</span><b>{candidateName}</b></div></td>
+                          <td>{analysis.role}</td>
+                          <td><div className="flex items-center gap-2"><span className="score-track"><i className={`score-fill score-${analysis.score}`} /></span><b>{analysis.score}</b></div></td>
+                          <td>{new Date(analysis.createdAt).toLocaleDateString()}</td>
+                          <td><span className={`status-pill ${status.toLowerCase().replaceAll(" ", "-")}`}>{status}</span></td>
+                          <td><button type="button" onClick={() => { setSelectedAnalysis(analysis); setPage("analyzer"); }} className="row-action">•••</button></td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
+                {!recentCandidates.length && <div className="dashboard-interview-empty"><p>No resumes analyzed yet</p><button type="button" onClick={() => setPage("analyzer")}>Analyze a resume →</button></div>}
               </div>
             </article>
 
@@ -436,28 +527,26 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
             <article className="dashboard-card">
               <div className="card-heading"><div><h2>Top skills in demand</h2><p>Based on active job requirements</p></div></div>
               <div className="space-y-4">
-                {[["Product design", "86%", "skill-86"], ["React & TypeScript", "74%", "skill-74"], ["Data analytics", "62%", "skill-62"], ["AI & machine learning", "55%", "skill-55"]].map(([skill, value, width]) => (
+                {topSkills.map(([skill, count]) => (
                   <div key={skill}>
-                    <div className="mb-1.5 flex justify-between text-xs"><b className="text-[#424744]">{skill}</b><span className="font-bold text-[#929693]">{value}</span></div>
-                    <div className="skill-track"><span className={width} /></div>
+                    <div className="mb-1.5 flex justify-between text-xs"><b className="text-[#424744]">{skill}</b><span className="font-bold text-[#929693]">{count}</span></div>
+                    <div className="skill-track"><span style={{ width: `${(count / maxSkillCount) * 100}%` }} /></div>
                   </div>
                 ))}
+                {!topSkills.length && <div className="dashboard-interview-empty"><p>No active job role skills yet</p><button type="button" onClick={() => setPage("jobs")}>Create a job role →</button></div>}
               </div>
             </article>
             <article className="dashboard-card">
               <div className="card-heading"><div><h2>Recent activity</h2><p>Latest updates across recruitment</p></div></div>
               <div className="space-y-4">
-                {[
-                  ["resume", "New resume analyzed", "Sophia Miller scored 92 for Product Designer", "8 min ago", "teal"],
-                  ["candidates", "Candidate shortlisted", "Daniel Chen moved to Interview", "24 min ago", "purple"],
-                  ["jobs", "New role published", "Senior Data Analyst is now accepting applications", "1 hr ago", "amber"],
-                ].map(([icon, title, body, time, theme]) => (
-                  <div key={title} className="activity-row">
-                    <div className={`metric-icon ${theme}`}><Icon name={icon as IconName} className="h-4 w-4" /></div>
-                    <div className="min-w-0 flex-1"><p>{title}</p><span>{body}</span></div>
-                    <time>{time}</time>
+                {recentActivities.map((activity) => (
+                  <div key={`${activity.title}-${activity.date}`} className="activity-row">
+                    <div className={`metric-icon ${activity.theme}`}><Icon name={activity.icon} className="h-4 w-4" /></div>
+                    <div className="min-w-0 flex-1"><p>{activity.title}</p><span>{activity.body}</span></div>
+                    <time>{new Date(activity.date).toLocaleDateString()}</time>
                   </div>
                 ))}
+                {!recentActivities.length && <div className="dashboard-interview-empty"><p>No recent activity</p></div>}
               </div>
             </article>
           </section>
