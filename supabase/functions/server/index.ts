@@ -159,7 +159,12 @@ async function createRecord(c: Context<AppEnv>, collection: string) {
   if (parsed.error) return c.json({ error: parsed.error }, 400);
   const record = recordFromPayload(parsed.value!);
   if (!record) return c.json({ error: "The record could not be created." }, 400);
-  await kv.set(storageKey(c.get("userId"), collection, record.id), record);
+  try {
+    await kv.set(storageKey(c.get("userId"), collection, record.id), record);
+  } catch (error) {
+    console.error(`Could not save ${collection} record:`, error);
+    return c.json({ error: `Could not save ${collection} data. Initialize the Supabase database table first.` }, 500);
+  }
   return c.json({ data: record }, 201);
 }
 

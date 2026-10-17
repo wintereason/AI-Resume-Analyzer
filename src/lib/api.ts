@@ -37,7 +37,13 @@ export async function apiRequest<T>(path: string, options: ApiOptions = {}): Pro
     );
   }
   if (response.status === 204) return undefined as T;
-  const body = await response.json().catch(() => ({}));
+  const responseText = await response.text();
+  let body: { error?: string } = {};
+  try {
+    body = JSON.parse(responseText) as { error?: string };
+  } catch {
+    if (responseText) body.error = responseText;
+  }
   if (!response.ok) {
     if (response.status === 404) {
       throw new Error(
